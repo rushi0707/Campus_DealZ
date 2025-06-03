@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState } from 'react';
 import './Add.css';
 import { assets, url } from '../assets/assets';
 import axios from 'axios';
@@ -28,18 +28,23 @@ const Add = () => {
         formData.append("price", Number(data.price));
         formData.append("category", data.category);
         formData.append("college", data.college); 
+
         images.forEach((image) => {
-            formData.append("images", image); // Use "images" as the key
+            formData.append("images", image); // multiple images
         });
 
         try {
-            const token = localStorage.getItem('token'); // Retrieve the token from local storage
-            console.log("formData", formData);
+            const token = localStorage.getItem('token');
+            if (!token) {
+                toast.error('User not logged in');
+                return;
+            }
+
             const response = await axios.post(`${url}/api/food/add`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
-                    'Authorization': `Bearer ${token}` // Add the token to the headers
-                }
+                    'Authorization': `Bearer ${token}`,
+                },
             });
 
             if (response.data.success) {
@@ -48,22 +53,22 @@ const Add = () => {
                     name: "",
                     description: "",
                     price: "",
-                    category: data.category,
-                    college: data.college,
+                    category: "All",
+                    college: "NIT Warangal",
                 });
                 setImages([]);
             } else {
                 toast.error(response.data.message);
             }
         } catch (error) {
-            console.error("There was an error uploading the images!", error);
+            console.error("Error uploading images:", error.response?.data || error.message);
             toast.error('Error uploading images');
         }
     };
 
     const onChangeHandler = (event) => {
         const { name, value } = event.target;
-        setData(data => ({ ...data, [name]: value }));
+        setData(prevData => ({ ...prevData, [name]: value }));
     };
 
     const onImageChange = (event) => {
@@ -86,10 +91,7 @@ const Add = () => {
                     <label htmlFor="images">
                         <div className="image-preview-container">
                             {images.length === 0 ? (
-                                <img
-                                    src={assets.upload_area}
-                                    alt="Upload Preview"
-                                />
+                                <img src={assets.upload_area} alt="Upload Preview" />
                             ) : (
                                 images.map((image, index) => (
                                     <img
@@ -103,6 +105,7 @@ const Add = () => {
                         </div>
                     </label>
                 </div>
+
                 <div className='add-product-name flex-col'>
                     <p>Product name</p>
                     <input
@@ -114,23 +117,24 @@ const Add = () => {
                         required
                     />
                 </div>
+
                 <div className='add-product-description flex-col'>
                     <p>Product description</p>
                     <textarea
                         name='description'
                         onChange={onChangeHandler}
                         value={data.description}
-                        type="text"
                         rows={6}
                         placeholder='Write content here'
                         required
                     />
                 </div>
+
                 <div className='add-category-price'>
                     <div className='add-category flex-col'>
                         <p>Product category</p>
                         <select name='category' onChange={onChangeHandler} value={data.category}>
-                            <option value="ALL">ALL</option>
+                            <option value="All">All</option>
                             <option value="Electronics">Electronics</option>
                             <option value="Sports">Sports</option>
                             <option value="Home Appliances">Home Appliances</option>
@@ -138,6 +142,7 @@ const Add = () => {
                             <option value="Other">Other</option>
                         </select>
                     </div>
+
                     <div className='add-category flex-col'>
                         <p>Select College</p>
                         <select name='college' onChange={onChangeHandler} value={data.college}>
@@ -149,6 +154,7 @@ const Add = () => {
                             <option value="IIT Bombay">IIT Bombay</option>
                         </select>
                     </div>
+
                     <div className='add-price flex-col'>
                         <p>Product Price</p>
                         <input
@@ -161,6 +167,7 @@ const Add = () => {
                         />
                     </div>
                 </div>
+
                 <button type='submit' className='add-btn'>ADD</button>
             </form>
         </div>
