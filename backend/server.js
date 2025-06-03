@@ -1,4 +1,4 @@
-import express  from "express"
+import express from "express"
 import cors from 'cors'
 import { connectDB } from "./config/db.js"
 import userRouter from "./routes/userRoute.js"
@@ -9,28 +9,34 @@ import orderRouter from "./routes/orderRoute.js"
 
 // app config
 const app = express()
-const port = process.env.PORT || 4000;
-
+const port = process.env.PORT || 4000
 
 // middlewares
 app.use(express.json())
-app.use(cors())
+
+// ✅ CORS Configuration: Allow only frontend domain
+app.use(cors({
+  origin: 'https://campus-dealz-frontend.onrender.com',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}))
+
+// ✅ Handle preflight requests
+app.options('*', cors())
 
 // db connection
 connectDB()
 
-
 // api endpoints
 app.use("/api/user", userRouter)
 app.use("/api/food", foodRouter)
-app.use("/uploads",express.static('uploads'))
+app.use("/uploads", express.static('uploads'))
 app.use("/api/cart", cartRouter)
-app.use("/api/order",orderRouter)
-
-
+app.use("/api/order", orderRouter)
 
 app.get("/", (req, res) => {
-    res.send("API Working")
-  });
+  res.send("API Working")
+})
 
+// start server
 app.listen(port, () => console.log(`Server started on http://localhost:${port}`))
